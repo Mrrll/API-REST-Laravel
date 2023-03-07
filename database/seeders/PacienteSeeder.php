@@ -1,57 +1,17 @@
-# API REST LARAVEL
-**`Nota:` Instalamos de laravel 8 y configuramos la BD.**
+<?php
 
-## Índice de contenidos
+namespace Database\Seeders;
 
-<a name="top"></a>
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
-- [Creamos la tabla pacientes](#item1)
-- [Creamos el seeder a la tabla pacientes](#item2)
-
-## Creamos la tabla pacientes ...
-<a name="item1"></a>
-
->`Typee:` En Consola ...
-```console
-php artisan make:migration create_pacientes_table
-```
-### Creamos los campos de la tabla pacientes ...
->`Abrimos:` el archivo `####_##_##_######_create_pacientes_table.php` que se encuentra en la carpeta `database\migrations` y en la funcion `up` escribimos lo siguiente ...
-```php
-public function up()
-    {
-        Schema::create('pacientes', function (Blueprint $table) {
-            $table->id();
-            $table->string('nombres');
-            $table->string('apellidos');
-            $table->string('edad');
-            $table->string('sexo');
-            $table->string('dni',8)->unique();
-            $table->string('tipo_sangre');
-            $table->string('telefono',9);
-            $table->string('correo');
-            $table->string('direccion');
-            $table->timestamps();
-        });
-    }
-```
-### Hacemos la migracion de la tabla a la BD ...
->`Typee:` En Consola ...
-```console
-php artisan migrate --path=database/migrations/####_##_##_######_create_pacientes_table.php
-```
-[Subir](#top)
-
-## Creamos el seeder a la tabla pacientes ...
-<a name="item2"></a>
-
->`Typee:` En Consola ...
-```console
-php artisan make:seeder PacienteSeeder
-```
-### Ingresar registros a la tabla pacientes ...
->`Abrimos:` el archivo `PacienteSeeder.php` que se encuentra en la carpeta `database\seeders` y en la funcion `run` escribimos lo siguiente ...
-```php
+class PacienteSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
     public function run()
     {
         DB::table('pacientes')->insert([
@@ -134,23 +94,4 @@ php artisan make:seeder PacienteSeeder
         	]
         ]);
     }
-```
-**`Nota:` Importamos la clase `DB` en el archivo `PacienteSeeder.php`  .**
-```php
-use Illuminate\Support\Facades\DB;
-```
-
-### Creamos la llamada al seeder Paciente para su ejecucion ...
->`Abrimos:` el archivo `DatabaseSeeder.php` que se encuentra en la carpeta `database\seeders` y en la funcion `run` escribimos lo siguiente ...
-```php
-    public function run()
-    {
-        $this->call(PacienteSeeder::class);
-    }
-```
-### Ejecutamos el seeder Paciente ...
->`Typee:` En Consola ...
-```console
-php artisan db:seed
-```
-[Subir](#top)
+}
