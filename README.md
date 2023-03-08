@@ -7,7 +7,8 @@
 
 - [Creamos la tabla pacientes](#item1)
 - [Creamos el seeder a la tabla pacientes](#item2)
-- [Creamos el modelo y el controlador](#item3)
+- [Creamos el modelo y el controlador de pacientes](#item3)
+- [Revertir migracion](#item4)
 
 <a name="item1"></a>
 
@@ -159,7 +160,7 @@ php artisan db:seed
 [Subir](#top)
 <a name="item3"></a>
 
-## Creamos el modelo y el controlador ...
+## Creamos el modelo y el controlador de pacientes ...
 ### Creamos el modelo Paciente ...
 >`Typee:` En Consola ...
 ```console
@@ -223,5 +224,24 @@ use App\Models\Paciente;
         'created_at',
         'updated_at'
     ];
+```
+<a name="item4"></a>
+
+## Revertir migracion ...
+**`Nota:` Podemos modificar la tabla y con la siguente instruccion revertimos la migracion `php artisan migrate:refresh` y con los parametros adicionales `--path=database/migrations/####_##_##_######_create_pacientes_table.php` para que solo nos revierta una tabla en concreto y `--seed` nos haga el seeder de la misma.**
+>`Typee:` En Consola ...
+```console
+php artisan migrate:refresh --path=database/migrations/####_##_##_######_create_pacientes_table.php --seed
+```
+### Añdimos contenido al seeder ...
+>`Abrimos:` el archivo `PacienteSeeder.php` que se encuentra en la carpeta `database\seeders\PacienteSeeder.php` y en la funcion `run` añadimos a cada paciente los created_at y update_at con formato escribimos lo siguiente ...
+```php
+    'created_at' => date('Y-m-d H:i:s'),
+    'updated_at' => date('Y-m-d')
+```
+### Modificamos la zona horaria de la app ...
+>`Abrimos:` el archivo `app.php` que se encuentra en la carpeta `config\app.php` y en `timezone` añadimos nuestra zona horaria [Listado de Zonas horarias](https://www.php.net/manual/es/timezones.php) `ej:Europe/Madrid` ...
+```php
+'timezone' => 'Europe/Madrid',
 ```
 [Subir](#top)
