@@ -1,15 +1,17 @@
 # API REST LARAVEL
 **`Nota:` Instalamos de laravel 8 y configuramos la BD.**
 
-## Índice de contenidos
-
 <a name="top"></a>
+
+## Índice de contenidos
 
 - [Creamos la tabla pacientes](#item1)
 - [Creamos el seeder a la tabla pacientes](#item2)
+- [Creamos el modelo y el controlador](#item3)
+
+<a name="item1"></a>
 
 ## Creamos la tabla pacientes ...
-<a name="item1"></a>
 
 >`Typee:` En Consola ...
 ```console
@@ -42,8 +44,9 @@ php artisan migrate --path=database/migrations/####_##_##_######_create_paciente
 ```
 [Subir](#top)
 
-## Creamos el seeder a la tabla pacientes ...
 <a name="item2"></a>
+
+## Creamos el seeder a la tabla pacientes ...
 
 >`Typee:` En Consola ...
 ```console
@@ -152,5 +155,73 @@ use Illuminate\Support\Facades\DB;
 >`Typee:` En Consola ...
 ```console
 php artisan db:seed
+```
+[Subir](#top)
+<a name="item3"></a>
+
+## Creamos el modelo y el controlador ...
+### Creamos el modelo Paciente ...
+>`Typee:` En Consola ...
+```console
+php artisan make:model Paciente
+```
+### Creamos el controlador Paciente ...
+**`Nota:` Creamos el controlador dentro de una carpeta llamada `API` y indicamos que queremos la estructura para tener los metodos de una api de esta manera `API/PacienteController --api`  .**
+>`Typee:` En Consola ...
+```console
+php artisan make:controller API/PacienteController --api
+```
+### Asignamos los campos masivos en el modelo ...
+>`Abrimos:` el archivo `Paciente.php` que se encuentra en la carpeta `app\Models\Paciente.php` y en la clase `Paciente` escribimos lo siguiente ...
+```php
+    class Paciente extends Model
+    {
+        use HasFactory;
+        protected $fillable = [
+            'nombre',
+            'apellidos',
+            'edad',
+            'sexo',
+            'dni',
+            'tipo_sangre',
+            'telefono',
+            'correo',
+            'direccion'
+        ];
+    }
+```
+### Leer datos de los pacientes desde el controlador ...
+>`Abrimos:` el archivo `PacienteController.php` que se encuentra en la carpeta `app\Http\Controllers\API\PacienteController.php` y en la funcion `index` escribimos lo siguiente ...
+```php
+    public function index()
+    {
+        return Paciente::all();
+    }
+```
+**`Nota:` Importamos el modelo `Paciente` en el archivo `PacienteController.php`  .**
+```php
+use App\Models\Paciente;
+```
+### Crear ruta api ...
+>`Abrimos:` el archivo `api.php` que se encuentra en la carpeta `routes\api.php` y escribimos lo siguiente ...
+```php
+    Route::middleware('auth:api')->get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::get('pacientes',[PacienteController::class,'index']);
+```
+**`Nota:` Importamos el Controlador `PacienteController` en el archivo `api.php`  .**
+```php
+use App\Models\Paciente;
+```
+**`Nota:` Para acceder a una ruta api  `http://127.0.0.1:8000/api/pacientes`.**
+
+### Ocultar datos en la consulta ...
+>`Abrimos:` el archivo `Paciente.php` que se encuentra en la carpeta `app\Models\Paciente.php` y en la clase `Paciente` escribimos lo siguiente ...
+```php
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 ```
 [Subir](#top)
