@@ -13,6 +13,7 @@
 - [Traducir Mensajes de Validaciones](#item6)
 - [Mostrar un registro](#item7)
 - [Actualizar registro](#item8)
+- [Eliminar registro](#item9)
 
 <a name="item1"></a>
 
@@ -439,5 +440,33 @@ use App\Http\Requests\ActualizarPacienteRequest;
     Route::get('pacientes',[PacienteController::class,'index']);
     Route::post('pacientes',[PacienteController::class,'store']);
     Route::get('pacientes/{paciente}',[PacienteController::class,'show']);
+    Route::put('pacientes/{paciente}',[PacienteController::class,'update']);
+```
+[Subir](#top)
+<a name="item9"></a>
+
+## Eliminar registro ...
+>`Abrimos:` el archivo `PacienteControler.php` que se encuentra en la carpeta `app\http\Controllers\PacienteControler.php` y en la funcion `destroy` escribimos lo siguiente ...
+```php
+    public function destroy(Paciente $paciente)
+    {
+        $paciente->delete();
+        return response()->json([
+            'res' => true,
+            "msg" => 'Paciente Eliminado Correctamente'
+        ],200);
+    }
+```
+### Crear ruta api ...
+>`Abrimos:` el archivo `api.php` que se encuentra en la carpeta `routes\api.php` y escribimos lo siguiente ...
+```php
+    Route::middleware('auth:api')->get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::get('pacientes',[PacienteController::class,'index']);
+    Route::post('pacientes',[PacienteController::class,'store']);
+    Route::get('pacientes/{paciente}',[PacienteController::class,'show']);
+    Route::put('pacientes/{paciente}',[PacienteController::class,'update']);
+    Route::delete('pacientes/{paciente}',[PacienteController::class,'destroy']);
 ```
 [Subir](#top)
