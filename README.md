@@ -14,6 +14,7 @@
 - [Mostrar un registro](#item7)
 - [Actualizar registro](#item8)
 - [Eliminar registro](#item9)
+- [Api resources](#item10)
 
 <a name="item1"></a>
 
@@ -469,4 +470,121 @@ use App\Http\Requests\ActualizarPacienteRequest;
     Route::put('pacientes/{paciente}',[PacienteController::class,'update']);
     Route::delete('pacientes/{paciente}',[PacienteController::class,'destroy']);
 ```
+[Subir](#top)
+<a name="item10"></a>
+
+## Api resources ...
+### Refrescamos BD
+**`Nota:` Refrescamos la tabla pacientes de la BD .**
+>`Typee:` En Consola ...
+```console
+php artisan migrate:refresh --path=database/migrations/XXXX_XX_XX_XXXXXX_create_pacientes_table.php --seed
+```
+### Generando Recursos
+**`Nota:` Nos permite estructurar la api y cambiar los formatos a las respuesta de los datos se llama `Capa de Transformacion` .**
+>`Typee:` En Consola ...
+```console
+php artisan make:resource PacienteResource
+```
+>`Abrimos:` el archivo `PacienteResource.php` que se encuentra en la carpeta `app\http\Resource\PacienteResource.php` y en la funcion `toArray` escribimos lo siguiente ...
+```php
+    public function toArray($request)
+    {
+        return [
+            'id' => $this->id,
+            'nombres' => Str::of($this->nombres)->upper(),
+            'apellidos' => Str::of($this->apellidos)->upper(),
+            'edad' => $this->edad,
+            'sexo' => $this->sexo,
+            'dni' => $this->dni,
+            'tipo_sangre' => $this->tipo_sangre,
+            'telefono' => $this->telefono,
+            'correo' => $this->correo,
+            'direccion' => $this->direccion,
+            'fecha_creada' => $this->created_at->format('d-m-Y'),
+            'fecha_actualizada' => $this->updated_at->format('d-m-Y')
+        ];
+    }
+```
+**`Nota:` Importamos la clase `Str` en el archivo `PacienteResource.php`  .**
+```php
+use Illuminate\Support\Str;
+```
+**`Nota:` Metodos para modificar los formatos de los datos [Lista de Ayudantes](https://laravel.com/docs/8.x/helpers).**
+**`Nota:` Importamos el Recurso `PacienteResource` en el archivo `PacienteControler.php`  .**
+```php
+use App\Http\Resources\PacienteResource;
+```
+### Cambiamos los metodos del controlador `PacienteController` para utilizar las capas de transformacion de recursos.
+>`Abrimos:` el archivo `PacienteControler.php` que se encuentra en la carpeta `app\http\Controllers\PacienteControler.php` y en la funcion `index` escribimos lo siguiente ...
+```php
+    public function index()
+    {
+        return PacienteResource::collection(Paciente::all());
+    }
+```
+>En la funcion `store` escribimos lo siguiente ..
+```php
+    public function store(GuardarPacienteRequest $request)
+    {
+        return new PacienteResource(Paciente::create($request->all()));
+    }
+```
+>En la funcion `show` escribimos lo siguiente ..
+```php
+    public function show(Paciente $paciente)
+    {
+        return new PacienteResource($paciente);
+    }
+```
+>En la funcion `update` escribimos lo siguiente ..
+```php
+    public function update(ActualizarPacienteRequest $request, Paciente $paciente)
+    {
+        $paciente->update($request->all());
+        return new PacienteResource($paciente);
+    }
+```
+>En la funcion `destroy` escribimos lo siguiente ..
+```php
+    public function destroy(Paciente $paciente)
+    {
+        $paciente->delete();
+        return new PacienteResource($paciente);
+    }
+```
+### Devolver otra propiedad dentro del Recurso
+>`Abrimos:` el archivo `PacienteResource.php` que se encuentra en la carpeta `app\http\Resource\PacienteResource.php` y al final del documento escribimos lo siguiente ...
+```php
+    public function with($request)
+    {
+        return [
+            'res' => true,
+        ];
+    }
+```
+### Devolver otra propiedad dinamica dentro del Recurso
+>`Abrimos:` el archivo `PacienteControler.php` que se encuentra en la carpeta `app\http\Controllers\PacienteControler.php` y en la funcion `store` escribimos lo siguiente ..
+```php
+    return (new PacienteResource(Paciente::create($request->all())))->additional(['msg' => 'Paciente Guardado Correctamente']);
+```
+>Y en la funcion `update` escribimos lo siguiente ..
+```php
+    return (new PacienteResource($paciente))->additional(['msg' => 'Paciente Actualizado Correctamente']);
+```
+>Y en la funcion `destroy` escribimos lo siguiente ..
+```php
+    return (new PacienteResource($paciente))->additional(['msg' => 'Paciente Eliminado Correctamente'])
+```
+### Podemos cambiar el Status Code de la respuesta
+>`Abrimos:` el archivo `PacienteControler.php` que se encuentra en la carpeta `app\http\Controllers\PacienteControler.php` y en la funcion `update` escribimos lo siguiente ...
+```php
+    return (new PacienteResource($paciente))->additional(['msg' => 'Paciente Actualizado Correctamente'])->response()->setStatusCode(202);
+```
+### Reducir las rutas de Pacientes
+>`Abrimos:` el archivo `api.php` que se encuentra en la carpeta `routes\api.php` y escribimos lo siguiente ...
+```php
+    Route::apiResource('pacientes',PacienteController::class);
+```
+**`Notas` Reducimos todas las rutas de pacientes a una ruta unica .**
 [Subir](#top)
