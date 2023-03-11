@@ -10,6 +10,7 @@
 - [Creamos el modelo y el controlador de pacientes](#item3)
 - [Revertir migracion](#item4)
 - [Guardar registros](#item5)
+- [Traducir Mensajes de Validaciones](#item6)
 
 <a name="item1"></a>
 
@@ -297,7 +298,7 @@ php artisan make:request GuardarPacienteRequest
 ```
 **`Nota:` Importamos el Request `GuardarPacienteRequest` en el archivo `PacienteControler.php`  .**
 ```php
-use App\Http\Requests\GuardarPacienteRequest;;
+use App\Http\Requests\GuardarPacienteRequest;
 ```
 ### Crear ruta api ...
 >`Abrimos:` el archivo `api.php` que se encuentra en la carpeta `routes\api.php` y escribimos lo siguiente ...
@@ -307,5 +308,31 @@ use App\Http\Requests\GuardarPacienteRequest;;
     });
     Route::get('pacientes',[PacienteController::class,'index']);
     Route::post('pacientes',[PacienteController::class,'store']);
+```
+[Subir](#top)
+<a name="item6"></a>
+
+## Traducir Mensajes de Validaciones ...
+**`Nota:` Utilizaremos archivos de un repositorio en GitHub para hacer las traducciones [Link de Github Traducciones](https://github.com/Laraveles/spanish), Agradecimientos por el reporte de github que nos ofre IsraelOrtuno.**
+>`Abrimos en el repositorio:` el archivo `validation.php` que se encuentra en la carpeta `resources\lang\es\validation.php` y en nuestra app creamos una carperta llamada `es` en `resources\lang\` y dentro creamos el archivo `validation.php` y pegamos el codigo del archivo del repositorio de GitHub ...
+>`Abrimos:`el archivo `app.php` que se encuentra en la carpeta `config\app.php` y añadimos en `locale` la abreviatura `es`.
+```php
+'locale' => 'es',
+```
+**`Nota:` Esto es para traducir al español nuestra app.**
+**`Nota:` Traducir al español el menssage interno de la validacion.**
+>`Abrimos:`el archivo `Handler.php` que se encuentra en la carpeta `app\Exceptions\Handler.php` y añadimos lo siguente al final del documento.
+```php
+    protected function invalidJson($request, ValidationException $exception)
+    {
+        return response()->json([
+            'message' => __('Los datos proporcionados no son válidos.'),
+            'errors' => $exception->errors(),
+        ], $exception->status);
+    }
+```
+**`Nota:` Importamos la clase `ValidationException` en el archivo `Handler.php`  .**
+```php
+use Illuminate\Validation\ValidationException;
 ```
 [Subir](#top)
