@@ -1,5 +1,5 @@
 # API REST LARAVEL
-**`Nota:` Instalamos de laravel 8 y configuramos la BD.**
+**`Nota:` Instalamos de laravel 8 y configuramos la BD, tambien utilizaremos [Postman](https://www.postman.com/) para realizar las llamadas a las rutas de nuestra api.**
 
 <a name="top"></a>
 
@@ -9,6 +9,7 @@
 - [Creamos el seeder a la tabla pacientes](#item2)
 - [Creamos el modelo y el controlador de pacientes](#item3)
 - [Revertir migracion](#item4)
+- [Guardar registros](#item5)
 
 <a name="item1"></a>
 
@@ -179,7 +180,7 @@ php artisan make:controller API/PacienteController --api
     {
         use HasFactory;
         protected $fillable = [
-            'nombre',
+            'nombres',
             'apellidos',
             'edad',
             'sexo',
@@ -213,7 +214,7 @@ use App\Models\Paciente;
 ```
 **`Nota:` Importamos el Controlador `PacienteController` en el archivo `api.php`  .**
 ```php
-use App\Models\Paciente;
+use App\Models\PacienteController;
 ```
 **`Nota:` Para acceder a una ruta api  `http://127.0.0.1:8000/api/pacientes`.**
 
@@ -225,6 +226,7 @@ use App\Models\Paciente;
         'updated_at'
     ];
 ```
+[Subir](#top)
 <a name="item4"></a>
 
 ## Revertir migracion ...
@@ -243,5 +245,67 @@ php artisan migrate:refresh --path=database/migrations/####_##_##_######_create_
 >`Abrimos:` el archivo `app.php` que se encuentra en la carpeta `config\app.php` y en `timezone` añadimos nuestra zona horaria [Listado de Zonas horarias](https://www.php.net/manual/es/timezones.php) `ej:Europe/Madrid` ...
 ```php
 'timezone' => 'Europe/Madrid',
+```
+[Subir](#top)
+<a name="item5"></a>
+
+## Guardar registros ...
+
+### Creamos un Request ...
+**`Nota:` El Request sirve para poder controlar la verificacion de los datos .**
+>`Typee:` En Consola ...
+```console
+php artisan make:request GuardarPacienteRequest
+```
+>`Abrimos:` el archivo `GuardarPacienteRequest.php` que se encuentra en la carpeta `app\http\Requests\GuardarPacienteRequest.php` y en la funcion `authorize` escribimos lo siguiente ...
+```php
+    public function authorize()
+    {
+        return true;
+    }
+```
+>Y en la funcion `rules` escribimos lo siguiente ...
+```php
+    public function rules()
+    {
+        return [
+            "nombres" => "required",
+            "apellidos" => "required",
+            "edad" => "required",
+            "sexo" => "required",
+            "dni" => "required|unique:pacientes,dni",
+            "tipo_sangre" => "required",
+            "telefono" => "required",
+            "correo" => "required",
+            "direccion" => "required"
+        ];
+    }
+```
+**`Nota:` Las regla de validacion [Lista de Validaciones](https://laravel.com/docs/8.x/validation#available-validation-rules) .**
+
+### Configuramos el metodo para guardar registros.
+>`Abrimos:` el archivo `PacienteControler.php` que se encuentra en la carpeta `app\http\Controllers\PacienteControler.php` y en la funcion `store` escribimos lo siguiente ...
+```php
+    public function store(GuardarPacienteRequest $request)
+    {
+        Paciente::create($request->all());
+        return response()->json([
+            'res' => true,
+            'msg' => 'Paciente Guardado Correctamente'
+        ]);
+    }
+```
+**`Nota:` Importamos el Request `GuardarPacienteRequest` en el archivo `PacienteControler.php`  .**
+```php
+use App\Http\Requests\GuardarPacienteRequest;;
+```
+### Crear ruta api ...
+>`Abrimos:` el archivo `api.php` que se encuentra en la carpeta `routes\api.php` y escribimos lo siguiente ...
+```php
+    Route::middleware('auth:api')->get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::get('pacientes',[PacienteController::class,'index']);
+    Route::post('pacientes',[PacienteController::class,'store']);
 ```
 [Subir](#top)

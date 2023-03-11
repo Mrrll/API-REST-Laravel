@@ -8,8 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Paciente extends Model
 {
     use HasFactory;
+    /**
+ * The attributes that aren't mass assignable.
+ *
+ * @var array
+ */
+protected $guarded = [];
     protected $fillable = [
-        'nombre',
+        'nombres',
         'apellidos',
         'edad',
         'sexo',
