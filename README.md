@@ -12,6 +12,7 @@
 - [Guardar registros](#item5)
 - [Traducir Mensajes de Validaciones](#item6)
 - [Mostrar un registro](#item7)
+- [Actualizar registro](#item8)
 
 <a name="item1"></a>
 
@@ -294,7 +295,7 @@ php artisan make:request GuardarPacienteRequest
         return response()->json([
             'res' => true,
             'msg' => 'Paciente Guardado Correctamente'
-        ]);
+        ],200);
     }
 ```
 **`Nota:` Importamos el Request `GuardarPacienteRequest` en el archivo `PacienteControler.php`  .**
@@ -348,7 +349,7 @@ use Illuminate\Validation\ValidationException;
         return response()->json([
             'res' => true,
             'paciente' => $paciente
-        ]);
+        ],200);
     }
 ```
 ### Crear ruta api ...
@@ -376,5 +377,67 @@ use Illuminate\Validation\ValidationException;
 ```php
 use Throwable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+```
+[Subir](#top)
+<a name="item8"></a>
+
+## Actualizar registro ...
+
+### Creamos un Request ...
+**`Nota:` El Request sirve para poder controlar la verificacion de los datos .**
+>`Typee:` En Consola ...
+```console
+php artisan make:request ActualizarPacienteRequest
+```
+>`Abrimos:` el archivo `ActualizarPacienteRequest.php` que se encuentra en la carpeta `app\http\Requests\ActualizarPacienteRequest.php` y en la funcion `authorize` escribimos lo siguiente ...
+```php
+    public function authorize()
+    {
+        return true;
+    }
+```
+>Y en la funcion `rules` escribimos lo siguiente ...
+```php
+    public function rules()
+    {
+        return [
+            "nombres" => "required",
+            "apellidos" => "required",
+            "edad" => "required",
+            "sexo" => "required",
+            "dni" => "required|unique:pacientes,dni,".$this->route('paciente')->id,
+            "tipo_sangre" => "required",
+            "telefono" => "required",
+            "correo" => "required",
+            "direccion" => "required"
+        ];
+    }
+```
+**`Nota:` Para poder actualizar el campo Dni escribimos `"dni" => "required|unique:pacientes,dni,".$this->route('paciente')->id,` en la regla de validacion.**
+
+>`Abrimos:` el archivo `PacienteControler.php` que se encuentra en la carpeta `app\http\Controllers\PacienteControler.php` y en la funcion `update` escribimos lo siguiente ...
+```php
+    public function update(ActualizarPacienteRequest $request, Paciente $paciente)
+    {
+        $paciente->update($request->all());
+        return response()->json([
+            'res' => true,
+            "msg" => 'Paciente Actualizado Correctamente'
+        ],200);
+    }
+```
+**`Nota:` Importamos el Request `ActualizarPacienteRequest` en el archivo `PacienteControler.php`  .**
+```php
+use App\Http\Requests\ActualizarPacienteRequest;
+```
+### Crear ruta api ...
+>`Abrimos:` el archivo `api.php` que se encuentra en la carpeta `routes\api.php` y escribimos lo siguiente ...
+```php
+    Route::middleware('auth:api')->get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::get('pacientes',[PacienteController::class,'index']);
+    Route::post('pacientes',[PacienteController::class,'store']);
+    Route::get('pacientes/{paciente}',[PacienteController::class,'show']);
 ```
 [Subir](#top)
