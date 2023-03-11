@@ -11,6 +11,7 @@
 - [Revertir migracion](#item4)
 - [Guardar registros](#item5)
 - [Traducir Mensajes de Validaciones](#item6)
+- [Mostrar un registro](#item7)
 
 <a name="item1"></a>
 
@@ -320,6 +321,7 @@ use App\Http\Requests\GuardarPacienteRequest;
 'locale' => 'es',
 ```
 **`Nota:` Esto es para traducir al español nuestra app.**
+
 **`Nota:` Traducir al español el menssage interno de la validacion.**
 >`Abrimos:`el archivo `Handler.php` que se encuentra en la carpeta `app\Exceptions\Handler.php` y añadimos lo siguente al final del documento.
 ```php
@@ -334,5 +336,45 @@ use App\Http\Requests\GuardarPacienteRequest;
 **`Nota:` Importamos la clase `ValidationException` en el archivo `Handler.php`  .**
 ```php
 use Illuminate\Validation\ValidationException;
+```
+[Subir](#top)
+<a name="item7"></a>
+
+## Mostrar un registro ...
+>`Abrimos:` el archivo `PacienteControler.php` que se encuentra en la carpeta `app\http\Controllers\PacienteControler.php` y en la funcion `show` escribimos lo siguiente ...
+```php
+    public function show(Paciente $paciente)
+    {
+        return response()->json([
+            'res' => true,
+            'paciente' => $paciente
+        ]);
+    }
+```
+### Crear ruta api ...
+>`Abrimos:` el archivo `api.php` que se encuentra en la carpeta `routes\api.php` y escribimos lo siguiente ...
+```php
+    Route::middleware('auth:api')->get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::get('pacientes',[PacienteController::class,'index']);
+    Route::post('pacientes',[PacienteController::class,'store']);
+    Route::get('pacientes/{paciente}',[PacienteController::class,'show']);
+```
+**`Nota:` Cambiar el mensaje de la excepcion si no encuentra un registro.**
+>`Abrimos:`el archivo `Handler.php` que se encuentra en la carpeta `app\Exceptions\Handler.php` y añadimos lo siguente al final del documento.
+```php
+    public function render($request, Throwable $exception)
+    {
+        if($exception instanceof ModelNotFoundException){
+            return response()->json(["res" => false, "error" => "Error modelo no encontrado"], 400);
+        }
+        return parent::render($request, $exception);
+    }
+```
+**`Nota:` Importamos la clase `ModelNotFoundException` y `use Throwable;` en el archivo `Handler.php`  .**
+```php
+use Throwable;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 ```
 [Subir](#top)
