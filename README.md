@@ -15,6 +15,7 @@
 - [Actualizar registro](#item8)
 - [Eliminar registro](#item9)
 - [Api resources](#item10)
+- [Laravel Sanctum](#item11)
 
 <a name="item1"></a>
 
@@ -511,6 +512,7 @@ php artisan make:resource PacienteResource
 use Illuminate\Support\Str;
 ```
 **`Nota:` Metodos para modificar los formatos de los datos [Lista de Ayudantes](https://laravel.com/docs/8.x/helpers).**
+
 **`Nota:` Importamos el Recurso `PacienteResource` en el archivo `PacienteControler.php`  .**
 ```php
 use App\Http\Resources\PacienteResource;
@@ -587,4 +589,222 @@ use App\Http\Resources\PacienteResource;
     Route::apiResource('pacientes',PacienteController::class);
 ```
 **`Notas` Reducimos todas las rutas de pacientes a una ruta unica .**
+
+[Subir](#top)
+<a name="item11"></a>
+
+## Laravel Sanctum ...
+>`Typee:` En Consola ...
+```console
+composer require laravel/sanctum
+```
+**`Nota:` Instalamos el paquete laravel sanctum .**
+
+>`Typee:` En Consola ...
+```console
+php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+```
+**`Nota:` Publicar los archivos de configuración y migración de Sanctum .**
+
+>`Typee:` En Consola ...
+```console
+php artisan migrate:reset
+```
+**`Nota:` Limpiamos todos las migraciones de la bd .**
+
+>`Typee:` En Consola ...
+```console
+php artisan migrate --seed
+```
+**`Nota:` Hacemos las migraciones con el seeder de Pacientes de la bd .**
+
+### Agregar el middleware de Sanctum a su api
+>`Abrimos:` el archivo `Kernel.php` que se encuentra en la carpeta `app/Http/Kernel.php` y en la seccion `api` escribimos lo siguiente ...
+```php
+    'api' => [
+        \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        'throttle:api',
+        \Illuminate\Routing\Middleware\SubstituteBindings::class,
+    ],
+```
+### Para comenzar a emitir tokens para los usuarios
+>`Abrimos:` el archivo `User.php` que se encuentra en la carpeta `app/Models/User.php` y en la seccion `api` escribimos lo siguiente ...
+```php
+    use Laravel\Sanctum\HasApiTokens;
+
+    class User extends Authenticatable
+    {
+        use HasApiTokens, HasFactory, Notifiable;
+    }
+```
+**`Nota:` Si `HasApiTokens` da error, SanctumServiceProvider no se registra automáticamente en su aplicación. Para resolver su problema, debe agregar el proveedor de servicios manualmente .**
+>`Abrimos:` el archivo `app.php` que se encuentra en la carpeta `Config/app.php` y en la seccion `providers` escribimos lo siguiente ...
+```php
+'providers' => [
+    //...
+    Laravel\Sanctum\SanctumServiceProvider::class,
+];
+```
+**`Nota:` Cierre el editor y vuelva a arrancarlo y deberia de haber solucionado el problema, agradecimientos al usuario Thân LƯƠNG Đình de stackoverflow.**
+
+### Creamos un request para registro
+>`Typee:` En Consola ...
+```console
+php artisan make:request RegistroRequest
+```
+>`Abrimos:` el archivo `RegistroRequest.php` que se encuentra en la carpeta `app\http\Requests\RegistroRequest.php` y en la funcion `authorize` escribimos lo siguiente ...
+```php
+    public function authorize()
+    {
+        return true;
+    }
+```
+>Y en la funcion `rules` escribimos lo siguiente ...
+```php
+    public function rules()
+    {
+        return [
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required'
+        ];
+    }
+```
+**`Nota:` Importamos el Request `RegistroRequest` en el archivo `AutenticarController.php`  .**
+```php
+use App\Http\Requests\RegistroRequest;
+```
+### Creamos Cotrolador Auth api token
+>`Typee:` En Consola ...
+```console
+php artisan make:controller AutenticarController
+```
+### Creamos el metodo Registro
+>`Abrimos:` el archivo `AutenticarController` que se encuentra en la carpeta `app/Http/Controllers/AutenticarController.php` y escribimos lo siguiente ...
+```php
+class AutenticarController extends Controller
+{
+    public function registro(RegistroRequest $request)
+    {
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = bcrypt($request->password);
+        $user->save();
+        return response()->json([
+            'res' => true,
+            'msg' => 'Usuario Registrado Correctamente'
+        ],200);
+    }
+}
+```
+**`Nota:` Importamos el Modelo `User` en el archivo `AutenticarController.php`  .**
+```php
+use App\Models\User;
+```
+### Crear ruta api ...
+>`Abrimos:` el archivo `api.php` que se encuentra en la carpeta `routes\api.php` y escribimos lo siguiente ...
+```php
+Route::post('registro',[AutenticarController::class,'registro']);
+```
+**`Nota:` Importamos el Controlador `AutenticarController` en el archivo `api.php`  .**
+```php
+use App\Http\Controllers\AutenticarController;
+```
+### Creamos un request para el acceso
+>`Typee:` En Consola ...
+```console
+php artisan make:request AccesoRequest
+```
+>`Abrimos:` el archivo `AccesoRequest.php` que se encuentra en la carpeta `app\http\Requests\AccesoRequest.php` y en la funcion `authorize` escribimos lo siguiente ...
+```php
+    public function authorize()
+    {
+        return true;
+    }
+```
+>Y en la funcion `rules` escribimos lo siguiente ...
+```php
+    public function rules()
+    {
+        return [
+            'email' => 'required|email',
+            'password' => 'required'
+        ];
+    }
+```
+**`Nota:` Importamos el Request `AccesoRequest` en el archivo `AutenticarController.php`  .**
+```php
+use App\Http\Requests\AccesoRequest;
+```
+### Creamos el metodo Acceso
+>`Abrimos:` el archivo `AutenticarController` que se encuentra en la carpeta `app/Http/Controllers/AutenticarController.php` y escribimos lo siguiente ...
+```php
+class AutenticarController extends Controller
+{
+    public function acceso(AccesoRequest $request)
+    {
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'msg' => ['Las credenciales son incorrectas!!!'],
+            ]);
+        }
+
+        $token = $user->createToken($request->email)->plainTextToken;
+        return response()->json([
+            'res' => true,
+            'token' => $token
+        ],200);
+    }
+}
+```
+**`Nota:` Importamos las clases `Hash, ValidationException` en el archivo `AutenticarController.php`  .**
+```php
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
+```
+### Crear ruta api ...
+>`Abrimos:` el archivo `api.php` que se encuentra en la carpeta `routes\api.php` y escribimos lo siguiente ...
+```php
+Route::post('acceso',[AutenticarController::class,'acceso']);
+```
+### Creamos el metodo Cerrar Sesion
+>`Abrimos:` el archivo `AutenticarController` que se encuentra en la carpeta `app/Http/Controllers/AutenticarController.php` y escribimos lo siguiente ...
+```php
+class AutenticarController extends Controller
+{
+    public function cerrarSesion(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+        return response()->json([
+            'res' => true,
+            'msg' => 'Token Eliminado Correctamente'
+        ],200);
+    }
+}
+```
+### Crear ruta api con middleware de auth sactum...
+>`Abrimos:` el archivo `api.php` que se encuentra en la carpeta `routes\api.php` y escribimos lo siguiente ...
+```php
+Route::group(['middleware' => ['auth:sanctum']], function(){
+    Route::post('cerrarsesion',[AutenticarController::class,'cerrarSesion']);
+});
+```
+### Capturar Excepcion RouteNotFoundException
+>`Abrimos:`el archivo `Handler.php` que se encuentra en la carpeta `app\Exceptions\Handler.php` y añadimos al metodo render.
+```php
+    public function render($request, Throwable $exception)
+    {
+        if($exception instanceof RouteNotFoundException){
+            return response()->json(["res" => false, "error" => "No tiene permiso a esta ruta"], 401);
+        }
+        return parent::render($request, $exception);
+    }
+```
+**`Nota:` Importamos la clase `RouteNotFoundException` en el archivo `Handler.php`  .**
+```php
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
+```
 [Subir](#top)
