@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API;
 
 use App\Http\Requests\RegistroRequest;
 use App\Http\Requests\AccesoRequest;
@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class AutenticarController extends Controller
 {
@@ -18,6 +19,7 @@ class AutenticarController extends Controller
         $user->email = $request->email;
         $user->password = bcrypt($request->password);
         $user->save();
+        $user->roles()->attach($request->roles);
         return response()->json([
             'res' => true,
             'msg' => 'Usuario Registrado Correctamente'

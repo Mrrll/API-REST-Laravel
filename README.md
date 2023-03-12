@@ -16,6 +16,7 @@
 - [Eliminar registro](#item9)
 - [Api resources](#item10)
 - [Laravel Sanctum](#item11)
+- [Tablas Relacionadas Many To Many](#item12)
 
 <a name="item1"></a>
 
@@ -807,4 +808,127 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 ```php
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 ```
+### Modificacion del Controlador
+**`Nota:` Movemos el archivo AutenticarController a la carpeta `app/Http/Controllers/API/` y modificamos las rutas de las importaciones de los archivos donde se llamen .**
+
+>`Abrimos:`el archivo `AutenticarController.php` que se encuentra en la carpeta `app/Http/Controllers/API/` cambiamos.
+```php
+namespace App\Http\Controllers\API;
+```
+>Añadimos
+```php
+use App\Http\Controllers\Controller;
+```
+>`Abrimos:`el archivo `api.php` que se encuentra en la carpeta `routes\api.php` cambiamos.
+```php
+use App\Http\Controllers\API\AutenticarController;
+```
+### Reseteamos la bd
+>`Typee:` En Consola ...
+```console
+php artisan migrate:reset
+```
+>`Typee:` En Consola ...
+```console
+php artisan migrate --seed
+```
+[Subir](#top)
+<a name="item12"></a>
+
+## Tablas Relacionadas Many To Many ...
+### Creamos el modelo con su migracion
+>`Typee:` En Consola ...
+```console
+php artisan make:model Role -m
+```
+### Creamos la tabla intermedia y asignamos el nombre
+>`Typee:` En Consola ...
+```console
+php artisan make:migration create_roles_asignados_table --create=roles_asignados
+```
+### Configuramos las tablas
+>`Abrimos:`el archivo `XXXX_XX_XX_XXXXXX_create_roles_table.php` que se encuentra en la carpeta `database\migrations\XXXX_XX_XX_XXXXXX_create_roles_table.php` en la funcion `up` escribimos lo siguiente.
+```php
+        Schema::create('roles', function (Blueprint $table) {
+            $table->id();
+            $table->string('nombre')->unique();
+            $table->string('descripcion')->nullable();
+            $table->timestamps();
+        });
+```
+>`Abrimos:`el archivo `XXXX_XX_XX_XXXXXX_create_roles_asignados_table.php` que se encuentra en la carpeta `database\migrations\XXXX_XX_XX_XXXXXX_create_roles_asignados_table.php` en la funcion `up` escribimos lo siguiente.
+```php
+        Schema::create('roles_asignados', function (Blueprint $table) {
+            $table->integer('user_id')->unsigned();
+            $table->integer('role_id')->unsigned();
+        });
+```
+### Creamos un seeder para la tabla roles
+>`Typee:` En Consola ...
+```console
+php artisan make:seeder RoleSeeder
+```
+>`Abrimos:` el archivo `RoleSeeder.php` que se encuentra en la carpeta `database\seeders\RoleSeeder.php` y en la funcion `run` añadimos a cada paciente los created_at y update_at con formato escribimos lo siguiente ...
+```php
+        DB::table('roles')->insert([
+        	[
+                'nombre' => 'Admin',
+                'descripcion' => 'Rol del administrador',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+        	],
+        	[
+                'nombre' => 'Jefe',
+                'descripcion' => 'Rol del jefe',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+        	],
+            [
+                'nombre' => 'Empleado',
+                'descripcion' => 'Rol del trabajador',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+        	],
+            [
+                'nombre' => 'Cliente',
+                'descripcion' => 'Rol del usuario cliente',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+        	],
+        ]);
+```
+### Creamos la llamada al seeder Roles para su ejecucion ...
+>`Abrimos:` el archivo `DatabaseSeeder.php` que se encuentra en la carpeta `database\seeders` y en la funcion `run` escribimos lo siguiente ...
+```php
+    public function run()
+    {
+        $this->call(RoleSeeder::class);
+    }
+```
+>`Typee:` En Consola ...
+```console
+php artisan migrate:refresh --seed
+```
+>`Abrimos:`el archivo `User.php` que se encuentra en la carpeta `app\Models\User.php` escribimos al final lo siguiente.
+```php
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class,'roles_asignados');
+    }
+```
+>`Abrimos:`el archivo `Role.php` que se encuentra en la carpeta `app\Models\Role.php` escribimos al final lo siguiente.
+```php
+    public function users()
+    {
+        return $this->belongsToMany(User::class,'roles_asignados');
+    }
+```
+### Asignar el role al usuario
+>`Abrimos:`el archivo `AutenticarController.php` que se encuentra en la carpeta `app\Http\Controllers\API\AutenticarController.php` y la funcion `registro` escribimos siguiente.
+```php
+$user->roles()->attach($request->roles);
+```
+**`Agradecimientos:` Por el Tutorial [Aderson Jara](https://www.youtube.com/@adersonjara9804) de Crear API REST Laravel 8.**
+>Pues eso es todo espero que sirva. 👍
+
 [Subir](#top)
